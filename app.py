@@ -14,7 +14,7 @@ import plotly.express as px
 import joblib, os
 
 from data_generator import make_sample
-from model import train, predict_one, load_model
+from ml_model import train, predict_one, load_model
 
 # ── 페이지 설정 ───────────────────────────────────────────────────────────────
 st.set_page_config(

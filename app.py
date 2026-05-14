@@ -1,5 +1,5 @@
 """
-GradeGuard — 게임 자체등급분류 오류 사전 예측 서비스
+GradeChecker — 게임 자체등급분류 오류 사전 예측 서비스
 실행: streamlit run app.py
 """
 
@@ -18,7 +18,7 @@ from model import train, predict_one, load_model
 
 # ── 페이지 설정 ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="GradeGuard",
+    page_title="GradeChecker",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="collapsed",

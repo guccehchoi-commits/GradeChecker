@@ -349,7 +349,7 @@ with tab_stats:
     m1, m2, m3, m4 = st.columns(4)
     total   = len(df_stats)
     reratio = df_stats["reclassified"].mean()
-    high_n  = (df_stats["reclassify_prob"] >= 0.65).sum()
+    high_n  = df_stats["reclassified"].sum()
     ind_n   = (df_stats["org_type"] == "개인").sum()
 
     with m1:

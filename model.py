@@ -19,7 +19,7 @@ from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import (classification_report, roc_auc_score,
                              confusion_matrix, f1_score)
 
-MODEL_PATH = Path(__file__).parent / "gradeguard_model.pkl"
+MODEL_PATH = Path(__file__).parent / "gradechecker_model.pkl"
 
 CATEGORICAL_COLS = ["genre", "platform", "org_type", "grade", "dev_history"]
 NUMERIC_COLS     = ["year"]

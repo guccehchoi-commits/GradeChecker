@@ -68,7 +68,7 @@ div[data-testid="stTabs"] button { font-size:0.95rem; font-weight:500; }
 """, unsafe_allow_html=True)
 
 # ── 모델 로드 (캐시) ──────────────────────────────────────────────────────────
-MODEL_PATH = Path(__file__).parent / "gradeguard_model.pkl"
+MODEL_PATH = Path(__file__).parent / "gradechecker_model.pkl"
 
 @st.cache_resource
 def get_model():

@@ -68,14 +68,10 @@ div[data-testid="stTabs"] button { font-size:0.95rem; font-weight:500; }
 """, unsafe_allow_html=True)
 
 # ── 모델 로드 (캐시) ──────────────────────────────────────────────────────────
-MODEL_PATH = Path(__file__).parent / "gradechecker_model.pkl"
-
 @st.cache_resource
 def get_model():
-    if not MODEL_PATH.exists():
-        df = make_sample(3000)
-        return train(df)
-    return load_model()
+    df = pd.read_csv(Path(__file__).parent / "train_data.csv")
+    return train(df)
 
 # ── 더미 DB (B2C용) ───────────────────────────────────────────────────────────
 GAME_DB = {

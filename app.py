@@ -57,11 +57,11 @@ def get_model():
     csv_path = Path(__file__).parent / "train_data.csv"
     if csv_path.exists():
         df = pd.read_csv(csv_path)
-        st.toast(f"실데이터 {len(df):,}건으로 모델 초기화 중...")
+        src_msg = f"실데이터 {len(df):,}건으로 모델 초기화 완료"
     else:
         df = make_sample(3000)
-        st.toast("합성 데이터로 모델 초기화 중...")
-    return train(df)
+        src_msg = "합성 데이터로 모델 초기화 완료"
+    return train(df), src_msg
 
 
 # ── 통계 데이터 ────────────────────────────────────────────────────────────────
@@ -169,7 +169,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.spinner("AI 예측 모델 초기화 중... (최초 실행 시 2~3분 소요)"):
-    pipeline = get_model()
+    pipeline, src_msg = get_model()
+st.toast(src_msg)
 
 tab_b2b, tab_b2c, tab_stats = st.tabs([
     "🏢 개발사·플랫폼 도구", "👥 이용자 등급 조회", "📊 통계 대시보드"

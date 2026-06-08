@@ -348,8 +348,8 @@ with tab_b2c:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab_stats:
     df_stats = get_stats_data()
-    is_real  = (Path(__file__).parent / "train_data.csv").exists()
-    src_note = "GRAC 실데이터" if is_real else "합성 데이터"
+    self_exists = (Path(__file__).parent / "grac_self_data.csv").exists()
+    src_note = "GRAC 실데이터 + 민간자율분류" if self_exists else "GRAC 실데이터"
 
     st.markdown("#### 자체등급분류 오류 현황 분석")
     st.caption(f"※ 데이터 출처: {src_note} ({len(df_stats):,}건)")

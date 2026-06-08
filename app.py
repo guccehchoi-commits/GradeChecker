@@ -365,8 +365,7 @@ with tab_stats:
     with m3: st.metric("재조정 발생 건수", f"{high_n:,}건", f"전체의 {high_n/total:.1%}")
     with m4: st.metric("개인 개발사 비율", f"{ind_n/total:.1%}")
 
-    st.markdown("---")
-    ch1, ch2 = st.columns(2)
+    st.markdown("**장르별 재조정 비율**")
 
     with ch1:
         st.markdown("**장르별 재조정 비율**")

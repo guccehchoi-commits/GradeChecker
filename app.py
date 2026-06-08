@@ -57,6 +57,11 @@ def get_model():
     csv_path = Path(__file__).parent / "train_data.csv"
     if csv_path.exists():
         df = pd.read_csv(csv_path)
+        self_path = Path(__file__).parent / "grac_self_data.csv"
+        if self_path.exists():
+            df_self = pd.read_csv(self_path, encoding="cp949")
+            df_self = preprocess_self(df_self)
+            df = pd.concat([df, df_self], ignore_index=True)
         src_msg = f"실데이터 {len(df):,}건으로 모델 초기화 완료"
     else:
         df = make_sample(3000)
@@ -69,7 +74,13 @@ def get_model():
 def get_stats_data():
     csv_path = Path(__file__).parent / "train_data.csv"
     if csv_path.exists():
-        return pd.read_csv(csv_path)
+        df = pd.read_csv(csv_path)
+        self_path = Path(__file__).parent / "grac_self_data.csv"
+        if self_path.exists():
+            df_self = pd.read_csv(self_path, encoding="cp949")
+            df_self = preprocess_self(df_self)
+            df = pd.concat([df, df_self], ignore_index=True)
+        return df
     return make_sample(3000)
 
 

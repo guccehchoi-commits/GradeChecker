@@ -161,7 +161,7 @@ def save_data(df_clean: pd.DataFrame):
 
 if __name__ == "__main__":
     # 1. 데이터 수집
-    df_raw = fetch_all(max_pages=20)
+    df_raw = fetch_all(max_pages=100)
 
     if df_raw.empty:
         print("데이터 수집 실패")

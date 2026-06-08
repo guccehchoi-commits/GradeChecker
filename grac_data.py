@@ -151,19 +151,12 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     return out.dropna(subset=["genre", "grade"]).reset_index(drop=True)
 
 
-def save_and_train(df_clean: pd.DataFrame):
-    """전처리 데이터 저장 + 모델 재학습"""
-    import sys
-    sys.path.insert(0, str(Path(__file__).parent))
-    from ml_model import train
-
+def save_data(df_clean: pd.DataFrame):
+    """전처리 데이터 저장만 (모델 재학습은 Streamlit 앱이 담당)"""
     save_path = Path(__file__).parent / "train_data.csv"
     df_clean.to_csv(save_path, index=False)
-    print(f"\n전처리 완료 — {len(df_clean):,}건 저장 ({save_path})")
+    print(f"\n저장 완료 — {len(df_clean):,}건 ({save_path})")
     print(f"재조정 비율: {df_clean['reclassified'].mean():.1%}")
-
-    print("\n모델 재학습 시작...")
-    train(df_clean)
 
 
 if __name__ == "__main__":
@@ -177,5 +170,5 @@ if __name__ == "__main__":
         df_clean = preprocess(df_raw)
         print(df_clean.head(3).to_string())
 
-        # 3. 저장 + 재학습
-        save_and_train(df_clean)
+        # 3. 저장
+        save_data(df_clean)

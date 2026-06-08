@@ -348,8 +348,14 @@ with tab_b2c:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab_stats:
     df_stats = get_stats_data()
-    self_exists = (Path(__file__).parent / "grac_self_data.csv").exists()
-    src_note = "GRAC 실데이터 + 민간자율분류" if self_exists else "GRAC 실데이터"
+    csv_path = Path(__file__).parent / "train_data.csv"
+    self_path = Path(__file__).parent / "grac_self_data.csv"
+    if self_path.exists() and csv_path.exists():
+        grac_n = len(pd.read_csv(csv_path))
+        self_n = len(df_stats) - grac_n
+        src_note = f"GRAC 실데이터 {grac_n:,}건 + 민간자율분류 {self_n:,}건"
+    else:
+        src_note = "GRAC 실데이터"
 
     st.markdown("#### 자체등급분류 오류 현황 분석")
     st.caption(f"※ 데이터 출처: {src_note} ({len(df_stats):,}건)")

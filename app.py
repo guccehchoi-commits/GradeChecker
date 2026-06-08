@@ -351,8 +351,8 @@ with tab_stats:
     csv_path = Path(__file__).parent / "train_data.csv"
     self_path = Path(__file__).parent / "grac_self_data.csv"
     if self_path.exists() and csv_path.exists():
-        grac_n = len(pd.read_csv(csv_path))
-        self_n = len(df_stats) - grac_n
+        self_n = len(pd.read_csv(self_path, encoding="cp949"))
+        grac_n = len(df_stats) - self_n
         src_note = f"GRAC 실데이터 {grac_n:,}건 + 민간자율분류 {self_n:,}건"
     else:
         src_note = "GRAC 실데이터"

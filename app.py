@@ -38,6 +38,73 @@ def preprocess_self(df: pd.DataFrame) -> pd.DataFrame:
     return out.reset_index(drop=True)
 
 
+# ── 등급재분류 데이터 설정 (도메인 판단 — 자유롭게 수정) ──────────────────────
+INCLUDE_CANCELLATION = True   # '등급취소'(991건)도 reclassified=1 로 볼지
+
+# 자체등급 원표기 → 한국식 4단계 (Apple/구글 글로벌 표기 흡수)
+_RERATE_GRADE_MAP = {
+    "전체이용가": "전체이용가", "4+": "전체이용가", "3+": "전체이용가", "만3세이상": "전체이용가",
+    "9+": "12세이용가", "7세이상": "12세이용가", "12세이용가": "12세이용가",
+    "12+": "12세이용가", "만12세이상": "12세이용가",
+    "15세이용가": "15세이용가", "15+": "15세이용가",
+    "17+": "청소년이용불가", "청소년이용불가": "청소년이용불가",
+}
+
+
+def preprocess_rerating(df: pd.DataFrame) -> pd.DataFrame:
+    """게임위 직권등급재분류·등급취소·등급조정 목록 → 학습 스키마(전부 reclassified=1).
+
+    · 자체등급(처음 부여된 등급)이 실제로 적혀 있는 행만 사용한다.
+      빈칸은 추정해서 채우지 않고 제외한다 — '처음등급 → 재조정등급'이
+      사실관계여야 하므로, 지어낸 등급은 데이터에 섞지 않는다.
+    · 제작자(개발사) 등장 빈도를 dev_history(동일 개발사 재조정 이력)로 환산한다.
+    """
+
+    def norm_platform(x):
+        if pd.isna(x):
+            return "기타"
+        s = str(x).strip().lower()
+        if "google" in s:                                       return "구글플레이"
+        if "apple" in s:                                        return "애플 앱스토어"
+        if "sony" in s or "닌텐도" in s or "nintendo" in s:        return "콘솔"
+        return "기타"  # 삼성 / 원스토어 / Microsoft / Oculus / - 등
+
+    def norm_grade(x):
+        if pd.isna(x):
+            return None
+        return _RERATE_GRADE_MAP.get(str(x).strip().replace(" ", ""))  # 매핑 밖이면 None
+
+    def extract_year(d):
+        y = pd.to_datetime(d, errors="coerce")
+        return int(y.year) if pd.notna(y) and 2015 <= y.year <= 2030 else 2022
+
+    def dev_bucket(n):  # 개발사 등장 횟수 -> 이력 구간 (n회 등장 ~= n건 재조정)
+        return "없음" if n == 1 else "1회" if n == 2 else "2~3회" if n <= 4 else "4회 이상"
+
+    work = df.copy()
+    if not INCLUDE_CANCELLATION:
+        work = work[work["구분"] != "등급취소"]
+
+    # 자체등급이 실제로 있는 행만 (빈칸·매핑밖 제외)
+    work["_g"] = work["자체등급"].apply(norm_grade)
+    work = work[work["_g"].notna()].reset_index(drop=True)
+
+    # 제작자 빈도 -> dev_history
+    freq = work["제작자"].map(work["제작자"].value_counts()).fillna(1).astype(int)
+
+    out = pd.DataFrame()
+    out["genre"]        = "기타"                                       # 장르 정보 없음
+    out["platform"]     = work["자체등급분류사업자"].apply(norm_platform)
+    out["org_type"]     = "민간"                                       # preprocess_self 와 동일
+    out["grade"]        = work["_g"]                                   # 처음 부여된 자체등급(팩트)
+    out["year"]         = work["결정일자"].apply(extract_year)
+    out["dev_history"]  = freq.apply(dev_bucket)
+    out["description"]  = ""                                           # 콘텐츠 기술서 없음
+    out["reclassified"] = 1                                            # 전부 재조정 발생 사례
+    out["gametitle"]    = work["게임물명"].fillna("")
+    return out.reset_index(drop=True)
+
+
 st.set_page_config(
     page_title="GradeChecker",
     page_icon="🛡️",
@@ -73,18 +140,36 @@ div[data-testid="stTabs"] button { font-size:0.95rem; font-weight:500; }
 """, unsafe_allow_html=True)
 
 
+# ── 데이터 로딩 공통 헬퍼 ───────────────────────────────────────────────────────
+def _load_full_dataset():
+    """train_data + grac_self_data + grac_rerating_data 를 합쳐 반환.
+    train_data.csv 가 없으면 (None, 합성데이터) 를 반환."""
+    base = Path(__file__).parent
+    csv_path = base / "train_data.csv"
+    if not csv_path.exists():
+        return None
+
+    df = pd.read_csv(csv_path)
+
+    self_path = base / "grac_self_data.csv"
+    if self_path.exists():
+        df_self = pd.read_csv(self_path, encoding="utf-8-sig")
+        df = pd.concat([df, preprocess_self(df_self)], ignore_index=True)
+
+    rerate_path = base / "grac_rerating_data.csv"
+    if rerate_path.exists():
+        df_re = pd.read_csv(rerate_path, encoding="utf-8-sig")
+        df = pd.concat([df, preprocess_rerating(df_re)], ignore_index=True)
+
+    return df
+
+
 # ── 모델 로드 ──────────────────────────────────────────────────────────────────
 @st.cache_resource
 def get_model():
     """train_data.csv 있으면 실데이터, 없으면 합성데이터로 학습."""
-    csv_path = Path(__file__).parent / "train_data.csv"
-    if csv_path.exists():
-        df = pd.read_csv(csv_path)
-        self_path = Path(__file__).parent / "grac_self_data.csv"
-        if self_path.exists():
-            df_self = pd.read_csv(self_path, encoding="utf-8-sig")
-            df_self = preprocess_self(df_self)
-            df = pd.concat([df, df_self], ignore_index=True)
+    df = _load_full_dataset()
+    if df is not None:
         src_msg = f"실데이터 {len(df):,}건으로 모델 초기화 완료"
     else:
         df = make_sample(3000)
@@ -95,14 +180,8 @@ def get_model():
 # ── 통계 데이터 ────────────────────────────────────────────────────────────────
 @st.cache_data
 def get_stats_data():
-    csv_path = Path(__file__).parent / "train_data.csv"
-    if csv_path.exists():
-        df = pd.read_csv(csv_path)
-        self_path = Path(__file__).parent / "grac_self_data.csv"
-        if self_path.exists():
-            df_self = pd.read_csv(self_path, encoding="utf-8-sig")
-            df_self = preprocess_self(df_self)
-            df = pd.concat([df, df_self], ignore_index=True)
+    df = _load_full_dataset()
+    if df is not None:
         return df
     return make_sample(3000)
 
@@ -357,12 +436,25 @@ with tab_b2c:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab_stats:
     df_stats = get_stats_data()
-    csv_path  = Path(__file__).parent / "train_data.csv"
-    self_path = Path(__file__).parent / "grac_self_data.csv"
-    if self_path.exists() and csv_path.exists():
-        self_n = len(pd.read_csv(self_path, encoding="utf-8-sig"))
-        grac_n = len(df_stats) - self_n
-        src_note = f"GRAC 실데이터 {grac_n:,}건 + 민간자율분류 {self_n:,}건"
+    base      = Path(__file__).parent
+    csv_path  = base / "train_data.csv"
+    self_path = base / "grac_self_data.csv"
+    rerate_path = base / "grac_rerating_data.csv"
+
+    if csv_path.exists():
+        parts = []
+        if self_path.exists():
+            self_n = len(pd.read_csv(self_path, encoding="utf-8-sig"))
+            parts.append(f"민간자율분류 {self_n:,}건")
+        else:
+            self_n = 0
+        if rerate_path.exists():
+            df_re_n = len(preprocess_rerating(pd.read_csv(rerate_path, encoding="utf-8-sig")))
+            parts.append(f"직권재분류 {df_re_n:,}건")
+        else:
+            df_re_n = 0
+        grac_n = len(df_stats) - self_n - df_re_n
+        src_note = " + ".join([f"GRAC 실데이터 {grac_n:,}건"] + parts)
     else:
         src_note = "GRAC 실데이터"
 
@@ -461,4 +553,4 @@ with tab_stats:
     st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 st.markdown("---")
-st.caption("GradeChecker v0.2 | 게임이용자보호센터 (게임문화재단) | 2026 문화 디지털혁신 및 데이터 활용 공모전 출품작 | 본 서비스는 프로토타입이며 실제 등급 판정 효력이 없습니다.")
+st.caption("GradeChecker v0.3 | 게임이용자보호센터 (게임문화재단) | 2026 문화 디지털혁신 및 데이터 활용 공모전 출품작 | 본 서비스는 프로토타입이며 실제 등급 판정 효력이 없습니다.")

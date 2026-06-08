@@ -17,13 +17,6 @@ from ml_model import train, predict_one
 
 
 def preprocess_self(df: pd.DataFrame) -> pd.DataFrame:
-    PLATFORM_MAP = {
-        "GOOG": "구글플레이", "AAPL": "애플 앱스토어",
-        "MSFT": "콘솔", "NTDO": "콘솔", "SSCP": "콘솔", "SIEK": "콘솔",
-        "SGHS": "구글플레이", "FORT": "PC (Steam)", "EPIC": "PC (Steam)",
-        "EPIA": "PC (Steam)", "OCUL": "기타", "ONES": "PC (자체)",
-        "ONIA": "PC (자체)", "KAGA": "기타", "IR-C": "기타",
-    }
     def extract_year(rateno):
         try:
             date_part = str(rateno).split("-")[2]
@@ -34,8 +27,8 @@ def preprocess_self(df: pd.DataFrame) -> pd.DataFrame:
 
     out = pd.DataFrame()
     out["genre"]        = df["genre"].fillna("기타")
-    out["platform"]     = df["rateno"].str[:4].map(PLATFORM_MAP).fillna("기타")
-    out["org_type"]     = "중소"
+    out["platform"]     = "기타"
+    out["org_type"]     = "민간"
     out["grade"]        = df["grade"].fillna("15세이용가")
     out["year"]         = df["rateno"].apply(extract_year)
     out["dev_history"]  = "없음"

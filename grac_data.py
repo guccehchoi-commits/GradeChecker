@@ -155,7 +155,7 @@ def save_and_train(df_clean: pd.DataFrame):
     """전처리 데이터 저장 + 모델 재학습"""
     import sys
     sys.path.insert(0, str(Path(__file__).parent))
-    from model import train
+    from ml_model import train
 
     save_path = Path(__file__).parent / "train_data.csv"
     df_clean.to_csv(save_path, index=False)

@@ -82,7 +82,7 @@ def get_model():
         df = pd.read_csv(csv_path)
         self_path = Path(__file__).parent / "grac_self_data.csv"
         if self_path.exists():
-            df_self = pd.read_csv(self_path, encoding="cp949")
+            df_self = pd.read_csv(self_path, encoding="utf-8-sig")
             df_self = preprocess_self(df_self)
             df = pd.concat([df, df_self], ignore_index=True)
         src_msg = f"실데이터 {len(df):,}건으로 모델 초기화 완료"
@@ -100,7 +100,7 @@ def get_stats_data():
         df = pd.read_csv(csv_path)
         self_path = Path(__file__).parent / "grac_self_data.csv"
         if self_path.exists():
-            df_self = pd.read_csv(self_path, encoding="cp949")
+            df_self = pd.read_csv(self_path, encoding="utf-8-sig")
             df_self = preprocess_self(df_self)
             df = pd.concat([df, df_self], ignore_index=True)
         return df
@@ -134,6 +134,15 @@ GAME_DB = {
                     "grade":"15세이용가","year":2018,"dev_history":"1회",
                     "description":"폭력 혈액 전투 확률형"},
 }
+
+# ── 자체등급분류 현황 테이블 (기획안 1p 수치) ──────────────────────────────────
+SELF_RATING_STATS = pd.DataFrame({
+    "연도":          [2022, 2023, 2024],
+    "전체 게임물":   [1021996, 893064, 1562028],
+    "모니터링 게임물": [130000, 110000, 117000],
+    "시정 요청":     [11000, 9600, 7661],
+    "직권등급재분류": [1838, 1548, 929],
+})
 
 
 # ── 차트 함수 ──────────────────────────────────────────────────────────────────
@@ -348,10 +357,10 @@ with tab_b2c:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab_stats:
     df_stats = get_stats_data()
-    csv_path = Path(__file__).parent / "train_data.csv"
+    csv_path  = Path(__file__).parent / "train_data.csv"
     self_path = Path(__file__).parent / "grac_self_data.csv"
     if self_path.exists() and csv_path.exists():
-        self_n = len(pd.read_csv(self_path, encoding="latin1"))
+        self_n = len(pd.read_csv(self_path, encoding="utf-8-sig"))
         grac_n = len(df_stats) - self_n
         src_note = f"GRAC 실데이터 {grac_n:,}건 + 민간자율분류 {self_n:,}건"
     else:
@@ -373,19 +382,54 @@ with tab_stats:
 
     st.markdown("---")
 
-    st.markdown("**장르별 재조정 비율**")
-    genre_df = df_stats.groupby("genre")["reclassified"].mean().reset_index()
-    genre_df.columns = ["장르", "재조정비율"]
-    genre_df = genre_df.sort_values("재조정비율", ascending=True)
-    fig1 = px.bar(genre_df, x="재조정비율", y="장르", orientation="h",
-                  color="재조정비율",
-                  color_continuous_scale=["#1D9E75","#EF9F27","#E24B4A"],
-                  text=genre_df["재조정비율"].apply(lambda x: f"{x:.1%}"))
-    fig1.update_layout(height=320, showlegend=False, coloraxis_showscale=False,
-                       margin=dict(t=10,b=10,l=10,r=10),
-                       paper_bgcolor="rgba(0,0,0,0)", xaxis_tickformat=".0%")
-    st.plotly_chart(fig1, use_container_width=True)
+    # ── 차트 1+2: 장르별 / 등급별 재조정 비율 ──────────────────────────────────
+    ch1, ch2 = st.columns(2)
 
+    with ch1:
+        st.markdown("**장르별 재조정 비율**")
+        genre_df = df_stats.groupby("genre")["reclassified"].mean().reset_index()
+        genre_df.columns = ["장르", "재조정비율"]
+        genre_df = genre_df.sort_values("재조정비율", ascending=True)
+        fig1 = px.bar(genre_df, x="재조정비율", y="장르", orientation="h",
+                      color="재조정비율",
+                      color_continuous_scale=["#1D9E75","#EF9F27","#E24B4A"],
+                      text=genre_df["재조정비율"].apply(lambda x: f"{x:.1%}"))
+        fig1.update_layout(height=320, showlegend=False, coloraxis_showscale=False,
+                           margin=dict(t=10,b=10,l=10,r=10),
+                           paper_bgcolor="rgba(0,0,0,0)", xaxis_tickformat=".0%")
+        st.plotly_chart(fig1, use_container_width=True)
+
+    with ch2:
+        st.markdown("**등급별 재조정 비율**")
+        grade_order = ["전체이용가","12세이용가","15세이용가","청소년이용불가"]
+        grade_df = df_stats.groupby("grade")["reclassified"].mean().reset_index()
+        grade_df.columns = ["등급", "재조정비율"]
+        grade_df["등급"] = pd.Categorical(grade_df["등급"], categories=grade_order, ordered=True)
+        grade_df = grade_df.sort_values("등급")
+        fig2 = px.bar(grade_df, x="등급", y="재조정비율",
+                      color="재조정비율",
+                      color_continuous_scale=["#1D9E75","#EF9F27","#E24B4A"],
+                      text=grade_df["재조정비율"].apply(lambda x: f"{x:.1%}"))
+        fig2.update_layout(height=320, showlegend=False, coloraxis_showscale=False,
+                           margin=dict(t=10,b=10,l=10,r=10),
+                           paper_bgcolor="rgba(0,0,0,0)", yaxis_tickformat=".0%")
+        st.plotly_chart(fig2, use_container_width=True)
+
+    # ── 차트 3: 플랫폼별 재조정 비율 ──────────────────────────────────────────
+    st.markdown("**플랫폼별 재조정 비율**")
+    platform_df = df_stats.groupby("platform")["reclassified"].mean().reset_index()
+    platform_df.columns = ["플랫폼", "재조정비율"]
+    platform_df = platform_df.sort_values("재조정비율", ascending=True)
+    fig_p = px.bar(platform_df, x="재조정비율", y="플랫폼", orientation="h",
+                   color="재조정비율",
+                   color_continuous_scale=["#1D9E75","#EF9F27","#E24B4A"],
+                   text=platform_df["재조정비율"].apply(lambda x: f"{x:.1%}"))
+    fig_p.update_layout(height=260, showlegend=False, coloraxis_showscale=False,
+                        margin=dict(t=10,b=10,l=10,r=10),
+                        paper_bgcolor="rgba(0,0,0,0)", xaxis_tickformat=".0%")
+    st.plotly_chart(fig_p, use_container_width=True)
+
+    # ── 차트 4: 연도별 재조정 건수 추이 ───────────────────────────────────────
     st.markdown("**연도별 재조정 건수 추이**")
     year_df = df_stats.groupby("year")["reclassified"].agg(["sum","count"]).reset_index()
     year_df.columns = ["연도","재조정건수","전체건수"]
@@ -404,6 +448,17 @@ with tab_stats:
         legend=dict(orientation="h", y=1.1),
     )
     st.plotly_chart(fig3, use_container_width=True)
+
+    # ── 표: 자체등급분류 게임물 연간 현황 ─────────────────────────────────────
+    st.markdown("---")
+    st.markdown("**자체등급분류 게임물 연간 현황**")
+    st.caption("※ 출처: 게임물관리위원회, 2024-2025 게임물 등급분류 및 사후관리 연감")
+    display_df = SELF_RATING_STATS.copy()
+    display_df["전체 게임물"]    = display_df["전체 게임물"].apply(lambda x: f"{x:,}")
+    display_df["모니터링 게임물"] = display_df["모니터링 게임물"].apply(lambda x: f"{x:,}")
+    display_df["시정 요청"]      = display_df["시정 요청"].apply(lambda x: f"{x:,}")
+    display_df["직권등급재분류"]  = display_df["직권등급재분류"].apply(lambda x: f"{x:,}")
+    st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 st.markdown("---")
 st.caption("GradeChecker v0.2 | 게임이용자보호센터 (게임문화재단) | 2026 문화 디지털혁신 및 데이터 활용 공모전 출품작 | 본 서비스는 프로토타입이며 실제 등급 판정 효력이 없습니다.")

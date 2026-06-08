@@ -365,33 +365,20 @@ with tab_stats:
     with m3: st.metric("재조정 발생 건수", f"{high_n:,}건", f"전체의 {high_n/total:.1%}")
     with m4: st.metric("개인 개발사 비율", f"{ind_n/total:.1%}")
 
+    st.markdown("---")
+
     st.markdown("**장르별 재조정 비율**")
-
-    with ch1:
-        st.markdown("**장르별 재조정 비율**")
-        genre_df = df_stats.groupby("genre")["reclassified"].mean().reset_index()
-        genre_df.columns = ["장르", "재조정비율"]
-        genre_df = genre_df.sort_values("재조정비율", ascending=True)
-        fig1 = px.bar(genre_df, x="재조정비율", y="장르", orientation="h",
-                      color="재조정비율",
-                      color_continuous_scale=["#1D9E75","#EF9F27","#E24B4A"],
-                      text=genre_df["재조정비율"].apply(lambda x: f"{x:.1%}"))
-        fig1.update_layout(height=320, showlegend=False, coloraxis_showscale=False,
-                           margin=dict(t=10,b=10,l=10,r=10),
-                           paper_bgcolor="rgba(0,0,0,0)", xaxis_tickformat=".0%")
-        st.plotly_chart(fig1, use_container_width=True)
-
-    with ch2:
-        st.markdown("**기관유형 × 등급 재조정 비율**")
-        pivot = df_stats.groupby(["org_type","grade"])["reclassified"].mean().reset_index()
-        pivot.columns = ["기관유형","등급","재조정비율"]
-        fig2 = px.bar(pivot, x="등급", y="재조정비율", color="기관유형",
-                      barmode="group",
-                      color_discrete_map={"대형사":"#1D9E75","중소":"#EF9F27","개인":"#E24B4A"},
-                      text=pivot["재조정비율"].apply(lambda x: f"{x:.1%}"))
-        fig2.update_layout(height=320, margin=dict(t=10,b=10,l=10,r=10),
-                           paper_bgcolor="rgba(0,0,0,0)", yaxis_tickformat=".0%")
-        st.plotly_chart(fig2, use_container_width=True)
+    genre_df = df_stats.groupby("genre")["reclassified"].mean().reset_index()
+    genre_df.columns = ["장르", "재조정비율"]
+    genre_df = genre_df.sort_values("재조정비율", ascending=True)
+    fig1 = px.bar(genre_df, x="재조정비율", y="장르", orientation="h",
+                  color="재조정비율",
+                  color_continuous_scale=["#1D9E75","#EF9F27","#E24B4A"],
+                  text=genre_df["재조정비율"].apply(lambda x: f"{x:.1%}"))
+    fig1.update_layout(height=320, showlegend=False, coloraxis_showscale=False,
+                       margin=dict(t=10,b=10,l=10,r=10),
+                       paper_bgcolor="rgba(0,0,0,0)", xaxis_tickformat=".0%")
+    st.plotly_chart(fig1, use_container_width=True)
 
     st.markdown("**연도별 재조정 건수 추이**")
     year_df = df_stats.groupby("year")["reclassified"].agg(["sum","count"]).reset_index()

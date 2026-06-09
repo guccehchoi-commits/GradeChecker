@@ -475,13 +475,13 @@ with tab_stats:
     total   = len(df_stats)
     reratio = df_stats["reclassified"].mean()
     high_n  = int(df_stats["reclassified"].sum())
-    ind_n   = (df_stats["org_type"] == "개인").sum()
+    rep_n   = (df_stats["dev_history"] != "없음").sum()  # 재조정 이력 보유 건수
 
     m1, m2, m3, m4 = st.columns(4)
     with m1: st.metric("전체 분석 건수", f"{total:,}건")
     with m2: st.metric("재조정 발생률", f"{reratio:.1%}")
     with m3: st.metric("재조정 발생 건수", f"{high_n:,}건", f"전체의 {high_n/total:.1%}")
-    with m4: st.metric("개인 개발사 비율", f"{ind_n/total:.1%}")
+    with m4: st.metric("재조정 이력 보유 비율", f"{rep_n/total:.1%}")
 
     st.markdown("---")
 

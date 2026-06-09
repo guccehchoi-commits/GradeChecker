@@ -105,7 +105,9 @@ def train(df: pd.DataFrame):
     print(f"혼동행렬:\n  정상→정상 {cm[0,0]}  정상→재조정 {cm[0,1]}\n"
           f"  재조정→정상 {cm[1,0]}  재조정→재조정 {cm[1,1]}")
 
-    cv = cross_val_score(pipeline, X, y, cv=5, scoring="f1", n_jobs=-1)
+    from sklearn.model_selection import StratifiedKFold
+    cv_splitter = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    cv = cross_val_score(pipeline, X, y, cv=cv_splitter, scoring="f1", n_jobs=-1)
     print(f"CV F1 (5-fold): {cv.mean():.4f} ± {cv.std():.4f}")
 
     joblib.dump(pipeline, MODEL_PATH)

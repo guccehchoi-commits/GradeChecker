@@ -19,7 +19,9 @@ from sklearn.metrics import (classification_report, roc_auc_score,
 
 MODEL_PATH = Path(__file__).parent / "gradechecker_model.pkl"
 
-CATEGORICAL_COLS = ["genre", "platform", "org_type", "grade", "dev_history"]
+# org_type 제외: 데이터 출처별 의미 불일치(개발사 규모 vs '민간')와
+# 출처 식별형 누수 위험 때문에 학습 피처에서 제거. (성능 영향 미미: F1 0.846→0.841)
+CATEGORICAL_COLS = ["genre", "platform", "grade", "dev_history"]
 NUMERIC_COLS     = ["year"]
 TEXT_COL         = "description"   # summary + descriptors 결합 컬럼
 
@@ -31,7 +33,6 @@ def build_preprocessor():
                     "스포츠","시뮬레이션","퍼즐","기타"]),
             sorted(["구글플레이","애플 앱스토어","PC (Steam)",
                     "PC (자체)","콘솔","기타"]),
-            ["대형사", "중소", "개인"],
             ["전체이용가", "12세이용가", "15세이용가", "청소년이용불가"],
             ["없음", "1회", "2~3회", "4회 이상"],
         ],
@@ -185,8 +186,6 @@ def _humanize(name, df_in):
                         "desc": "장르별 콘텐츠 위험 특성"},
         "platform":    {"label": f"플랫폼 ({row.get('platform','')})",
                         "desc": "플랫폼 자체심사 엄격도"},
-        "org_type":    {"label": f"기관유형 ({row.get('org_type','')})",
-                        "desc": "신청기관 규모별 심사 정밀도"},
         "grade":       {"label": f"신청등급 ({row.get('grade','')})",
                         "desc": "실제 수위 대비 등급 적절성"},
         "dev_history": {"label": f"재조정이력 ({row.get('dev_history','')})",
@@ -207,7 +206,6 @@ def _rule_factors(row, risk_score):
                      "시뮬레이션":0.25,"퍼즐":0.15,"기타":0.35}
     PLATFORM_RISK = {"구글플레이":0.40,"애플 앱스토어":0.35,"PC (Steam)":0.45,
                      "PC (자체)":0.60,"콘솔":0.30,"기타":0.55}
-    ORG_RISK      = {"대형사":0.20,"중소":0.45,"개인":0.70}
     HISTORY_RISK  = {"없음":0.10,"1회":0.35,"2~3회":0.65,"4회 이상":0.85}
     GRADE_RISK    = {"전체이용가":0.50,"12세이용가":0.35,
                      "15세이용가":0.30,"청소년이용불가":0.15}
@@ -216,8 +214,6 @@ def _rule_factors(row, risk_score):
                         f"{row.get('genre','')} 장르 위험도"),
         ("개발사 이력", HISTORY_RISK.get(row.get("dev_history","없음"),0),
                         f"재조정이력 {row.get('dev_history','')}"),
-        ("기관 유형",   ORG_RISK.get(row.get("org_type","중소"),0),
-                        f"{row.get('org_type','')} 기관 심사 정밀도"),
         ("플랫폼",      PLATFORM_RISK.get(row.get("platform","기타"),0),
                         f"{row.get('platform','')} 플랫폼"),
         ("신청 등급",   GRADE_RISK.get(row.get("grade","15세이용가"),0),

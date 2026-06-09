@@ -16,6 +16,13 @@ from data_generator import make_sample
 from ml_model import train, predict_one
 
 
+_SELF_PLAT_MAP = {
+    "AAPL": "애플 앱스토어", "GOOG": "구글플레이", "NTDO": "콘솔", "SONY": "콘솔",
+    "MSFT": "기타", "OCUL": "기타", "SSCP": "기타", "SECL": "기타",
+    "SGHS": "기타", "ONIA": "기타", "FORT": "기타", "ONST": "기타",
+}
+
+
 def preprocess_self(df: pd.DataFrame) -> pd.DataFrame:
     def extract_year(rateno):
         try:
@@ -25,9 +32,13 @@ def preprocess_self(df: pd.DataFrame) -> pd.DataFrame:
         except:
             return 2022
 
+    def extract_platform(rateno):  # rateno 접두(AAPL/GOOG/…) → 플랫폼 복원
+        pre = str(rateno).split("-")[0].upper()
+        return _SELF_PLAT_MAP.get(pre, "기타")
+
     out = pd.DataFrame()
     out["genre"]        = df["genre"].fillna("기타")
-    out["platform"]     = "기타"
+    out["platform"]     = df["rateno"].apply(extract_platform)
     out["org_type"]     = "민간"
     out["grade"]        = df["grade"].fillna("15세이용가")
     out["year"]         = df["rateno"].apply(extract_year)

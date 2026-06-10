@@ -22,7 +22,7 @@ MODEL_PATH = Path(__file__).parent / "gradechecker_model.pkl"
 # org_type 제외: 데이터 출처별 의미 불일치(개발사 규모 vs '민간')와
 # 출처 식별형 누수 위험 때문에 학습 피처에서 제거. (성능 영향 미미: F1 0.846→0.841)
 CATEGORICAL_COLS = ["genre", "platform", "grade", "dev_history"]
-NUMERIC_COLS     = ["year"]
+NUMERIC_COLS     = []   # year 제외: 출시연도가 데이터 출처(GRAC/민간/재분류)를 간접 식별하는 누수 통로
 TEXT_COL         = "description"   # summary + descriptors 결합 컬럼
 
 
@@ -39,19 +39,17 @@ def build_preprocessor():
         handle_unknown="use_encoded_value",
         unknown_value=-1,
     )
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("cat", cat_enc, CATEGORICAL_COLS),
-            ("num", StandardScaler(), NUMERIC_COLS),
-            # NLP: summary + descriptors 결합 텍스트 → TF-IDF
-            ("txt", TfidfVectorizer(
-                max_features=100,        # v0.1(60)에서 확장
-                analyzer="char_wb",
-                ngram_range=(2, 4),
-                sublinear_tf=True,       # 빈도 로그 스케일링
-            ), TEXT_COL),
-        ]
-    )
+    transformers = [("cat", cat_enc, CATEGORICAL_COLS)]
+    if NUMERIC_COLS:
+        transformers.append(("num", StandardScaler(), NUMERIC_COLS))
+    transformers.append(
+        ("txt", TfidfVectorizer(
+            max_features=100,
+            analyzer="char_wb",
+            ngram_range=(2, 4),
+            sublinear_tf=True,
+        ), TEXT_COL))
+    preprocessor = ColumnTransformer(transformers=transformers)
     return preprocessor
 
 
@@ -190,8 +188,6 @@ def _humanize(name, df_in):
                         "desc": "실제 수위 대비 등급 적절성"},
         "dev_history": {"label": f"재조정이력 ({row.get('dev_history','')})",
                         "desc": "동일 개발사 과거 오류 패턴"},
-        "year":        {"label": f"출시연도 ({row.get('year','')})",
-                        "desc": "심사 기준 변경 이전 출시 여부"},
     }
     if name in m:
         return m[name]

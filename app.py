@@ -152,9 +152,20 @@ div[data-testid="stTabs"] button { font-size:0.95rem; font-weight:500; }
 
 
 # ── 데이터 로딩 공통 헬퍼 ───────────────────────────────────────────────────────
+def _load_grac_only():
+    """학습 전용: GRAC 실데이터(train_data.csv)만 반환.
+    정상·재조정이 한 출처에 섞여 있어, 출처 식별형 누수 없이 위험요인 학습 가능.
+    민간(전부 정상)·재분류(전부 재조정)는 라벨이 출처에 고정돼 학습에서 제외."""
+    base = Path(__file__).parent
+    csv_path = base / "train_data.csv"
+    if not csv_path.exists():
+        return None
+    return pd.read_csv(csv_path)
+
+
 def _load_full_dataset():
-    """train_data + grac_self_data + grac_rerating_data 를 합쳐 반환.
-    train_data.csv 가 없으면 (None, 합성데이터) 를 반환."""
+    """통계·실태 표시용: train_data + grac_self_data + grac_rerating_data 합산.
+    train_data.csv 가 없으면 None 을 반환."""
     base = Path(__file__).parent
     csv_path = base / "train_data.csv"
     if not csv_path.exists():
@@ -178,10 +189,10 @@ def _load_full_dataset():
 # ── 모델 로드 ──────────────────────────────────────────────────────────────────
 @st.cache_resource
 def get_model():
-    """train_data.csv 있으면 실데이터, 없으면 합성데이터로 학습."""
-    df = _load_full_dataset()
+    """학습은 GRAC 실데이터만 사용 (누수 차단). 없으면 합성데이터로 대체."""
+    df = _load_grac_only()
     if df is not None:
-        src_msg = f"실데이터 {len(df):,}건으로 모델 초기화 완료"
+        src_msg = f"GRAC 실데이터 {len(df):,}건으로 모델 학습 완료"
     else:
         df = make_sample(3000)
         src_msg = "합성 데이터로 모델 초기화 완료"

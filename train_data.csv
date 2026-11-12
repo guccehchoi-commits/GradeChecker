@@ -1,4 +1,6 @@
 genre,platform,org_type,grade,year,dev_history,description,reclassified,gametitle
+시뮬레이션,구글플레이,중소,전체이용가,2026,없음,,0,멀리멀리
+액션,PC (Steam),중소,전체이용가,2026,없음,폭력성,0,Ninja JaJaMaru: Yokai Night Parade(자자마루군의 백귀야행전)
 전략,PC (Steam),중소,12세이용가,2026,없음,"폭력성,선정성,공포",0,잔향
 기타,PC (Steam),중소,전체이용가,2026,없음,"폭력성,공포",0,공기: 쉬는 시간 (Gonggi: Recess)
 액션,구글플레이,중소,전체이용가,2026,없음,,0,그림자 피하기
@@ -409,8 +411,6 @@ RPG,PC (Steam),중소,15세이용가,2026,없음,선정성,0,위크로스 멀티
 시뮬레이션,콘솔,중소,전체이용가,2026,1회,,0,Football Manager 27 Console
 액션,콘솔,중소,청소년이용불가,2026,없음,폭력성,0,Wo Long 2: Wings of Ember Alpha 체험판
 슈팅,콘솔,중소,12세이용가,2026,없음,선정성,0,COTTOn Rock With You -ORIENTAL NIGHT DREAMS-
-기타,기타,중소,청소년이용불가,2026,없음,,0,LIL BUNNY
-기타,기타,중소,청소년이용불가,2026,없음,,0,LIL BUNNY MINI
 기타,기타,중소,청소년이용불가,2026,없음,,0,POKER LULU - 홀덤
 퍼즐,기타,중소,전체이용가,2026,없음,,0,뉴히든터치(NEWHiddenTouch)
 스포츠,기타,중소,전체이용가,2026,없음,,0,SOCCER KICK

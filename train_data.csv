@@ -1,4 +1,13 @@
 genre,platform,org_type,grade,year,dev_history,description,reclassified,gametitle
+기타,PC (Steam),중소,전체이용가,2026,없음,폭력성,0,네이트 플레이 오목
+퍼즐,구글플레이,중소,전체이용가,2026,없음,,0,Color Block Blast(컬러 블록 블라스트)
+기타,구글플레이,중소,전체이용가,2026,없음,,0,Cats Block Puzzle(캐츠 블록 퍼즐)
+어드벤처,구글플레이,중소,15세이용가,2026,없음,"폭력성,공포",0,Only Up: Parkour In Apocalypse(온리업: 파크루 인 아포칼립스)
+기타,구글플레이,중소,전체이용가,2026,없음,,0,Jewels Crush: Match 3 Mania(쥬얼스 크러쉬: 매치3 매니아)
+퍼즐,구글플레이,중소,전체이용가,2026,없음,,0,Shooter Nyan(슈터냥)
+퍼즐,구글플레이,중소,전체이용가,2026,없음,,0,Sushi Surf(스시 서프)
+퍼즐,구글플레이,중소,15세이용가,2026,없음,폭력성,0,Heroes Defense: Attack on Zombie(히어로즈 디펜스: 좀비 어택)
+퍼즐,구글플레이,중소,전체이용가,2026,없음,,0,CookieNyan(쿠키냥)
 전략,구글플레이,중소,전체이용가,2026,없음,폭력성,0,Kings Collide (킹스 콜라이드)
 기타,구글플레이,중소,전체이용가,2026,없음,,0,OX퀴즈쇼
 시뮬레이션,PC (Steam),중소,전체이용가,2026,없음,,0,My Little Cafe (나의 작은카페)
@@ -964,7 +973,7 @@ RPG,구글플레이,중소,청소년이용불가,2026,없음,사행성,0,킹덤2
 퍼즐,PC (Steam),중소,전체이용가,2026,없음,,0,점프런
 어드벤처,PC (Steam),중소,전체이용가,2026,없음,폭력성,0,Minecraft Dungeons II(마인크래프트 던전스 II)
 시뮬레이션,PC (Steam),대형사,청소년이용불가,2026,없음,선정성,0,조용한 구석
-RPG,PC (Steam),대형사,청소년이용불가,2026,없음,선정성,0,히간: 이루실
+RPG,PC (Steam),대형사,청소년이용불가,2026,없음,"선정성,사행성",0,히간: 이루실
 퍼즐,PC (Steam),중소,전체이용가,2026,없음,,0,2048 Quest
 퍼즐,PC (Steam),중소,전체이용가,2026,없음,,0,Territory Rush
 퍼즐,PC (Steam),중소,전체이용가,2026,없음,,0,Snake Quest
